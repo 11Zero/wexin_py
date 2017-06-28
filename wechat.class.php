@@ -343,7 +343,11 @@ class Wechat
     			return $this->_msg;
     		}
     }
-
+	public function get_token(){
+		if(is_null($this->access_token))
+			return $this->token;
+    	return $this->access_token;
+    }
     /**
      * 设置消息的星标标志，官方已取消对此功能的支持
      */
@@ -834,9 +838,17 @@ class Wechat
 			return false;
 	}
 
+	// public static function xmlSafeStr($str)
+	// {
+	// 	return '<![CDATA['.preg_replace("/[\\x00-\\x08\\x0b-\\x0c\\x0e-\\x1f]/",'',$str).']]>';
+	// }
+
 	public static function xmlSafeStr($str)
 	{
-		return '<![CDATA['.preg_replace("/[\\x00-\\x08\\x0b-\\x0c\\x0e-\\x1f]/",'',$str).']]>';
+		// if(strcmp(substr($str,1,1),'<') && strcmp(substr($str,strlen($str),1), '>'))
+		// 	return $str;
+		// else
+			return '<![CDATA['.preg_replace("/[\\x00-\\x08\\x0b-\\x0c\\x0e-\\x1f]/",'',$str).']]>';
 	}
 
 	/**
@@ -849,6 +861,9 @@ class Wechat
 	    foreach ($data as $key => $val) {
 	        is_numeric($key) && $key = "item id=\"$key\"";
 	        $xml    .=  "<$key>";
+			// if(is_array($val) && isset($val['url']) && isset($val['text']))
+			// 	$xml    .=self::xmlSafeStr($val);
+			// else
 	        $xml    .=  ( is_array($val) || is_object($val)) ? self::data_to_xml($val)  : self::xmlSafeStr($val);
 	        list($key, ) = explode(' ', $key);
 	        $xml    .=  "</$key>";
@@ -905,6 +920,25 @@ class Wechat
 			'FromUserName'=>$this->getRevTo(),
 			'MsgType'=>self::MSGTYPE_TEXT,
 			'Content'=>$this->_auto_text_filter($text),
+			'CreateTime'=>time(),
+			'FuncFlag'=>$FuncFlag
+		);
+		$this->Message($msg);
+		return $this;
+	}
+	/**
+	 * 设置带超链接的回复消息
+	 * Example: $obj->text('hello')->reply();
+	 * @param string $text
+	 */
+	public function urltext($text,$url)
+	{
+		$FuncFlag = $this->_funcflag ? 1 : 0;
+		$msg = array(
+			'ToUserName' => $this->getRevFrom(),
+			'FromUserName'=>$this->getRevTo(),
+			'MsgType'=>self::MSGTYPE_TEXT,
+			'Content'=>'<a href="www.hfut.edu.cn">合工大</a>',
 			'CreateTime'=>time(),
 			'FuncFlag'=>$FuncFlag
 		);
